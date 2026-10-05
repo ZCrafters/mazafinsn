@@ -1,30 +1,19 @@
 "use client"
 
 import type React from "react"
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
-import { Send, Bot, User, Loader2, X, Minimize2, TrendingUp, DollarSign, PieChart, Newspaper } from "lucide-react"
+import { Bot, Loader2, X, Minimize2 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
-
-interface Message {
-  id: string
-  content: string
-  role: "user" | "assistant"
-  timestamp: Date
-}
-
-const quickQuestions = [
-  { icon: TrendingUp, text: "Show me BBRI stock price", category: "stocks" },
-  { icon: DollarSign, text: "USD to IDR exchange rate", category: "currency" },
-  { icon: PieChart, text: "Analyze my portfolio", category: "portfolio" },
-  { icon: Newspaper, text: "Latest market news", category: "news" },
-]
+import { useLanguage } from "@/lib/language-context"
+import { MessageBubble, QuickQuestions, ChatInput } from "@/components/chatbot"
+import type { Message } from "@/components/chatbot"
 
 export default function FloatingAIChatbot() {
+  const { t } = useLanguage()
   const [isOpen, setIsOpen] = useState(false)
   const [isMinimized, setIsMinimized] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
@@ -35,28 +24,27 @@ export default function FloatingAIChatbot() {
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const supabase = createClient()
 
-  useEffect(() => {
-    const initializeUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-      setUser(user)
+  const initializeUser = useCallback(async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    setUser(user)
 
-      if (user && messages.length === 0) {
-        setMessages([
-          {
-            id: "welcome",
-            content:
-              "Hello! I'm your financial AI assistant. I can help you with:\n\n• Stock prices and market analysis\n• Currency exchange rates\n• Portfolio analysis and investment advice\n• Latest financial news and trends\n• Budgeting and financial planning\n\nHow can I assist you today?",
-            role: "assistant",
-            timestamp: new Date(),
-          },
-        ])
-      }
+    if (user && messages.length === 0) {
+      setMessages([
+        {
+          id: "welcome",
+          content: t("ai.welcome"),
+          role: "assistant",
+          timestamp: new Date(),
+        },
+      ])
     }
+  }, [messages.length, supabase.auth, t])
 
+  useEffect(() => {
     initializeUser()
-  }, [])
+  }, [initializeUser])
 
   const scrollToBottom = () => {
     if (scrollAreaRef.current) {
@@ -105,14 +93,13 @@ export default function FloatingAIChatbot() {
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: data.message || "I apologize, but I encountered an error. Please try again.",
+        content: data.message || t("ai.error") || "Terjadi kesalahan. Silakan coba lagi.",
         role: "assistant",
         timestamp: new Date(),
       }
 
       setMessages((prev) => [...prev, assistantMessage])
 
-      // Show notification if chat is closed
       if (!isOpen) {
         setHasNewMessage(true)
       }
@@ -120,20 +107,13 @@ export default function FloatingAIChatbot() {
       console.error("Chat error:", error)
       const fallbackMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: "I'm sorry, I encountered an error. Please try again.",
+        content: t("ai.error") || "Terjadi kesalahan. Silakan coba lagi.",
         role: "assistant",
         timestamp: new Date(),
       }
       setMessages((prev) => [...prev, fallbackMessage])
     } finally {
       setIsLoading(false)
-    }
-  }
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault()
-      handleSendMessage()
     }
   }
 
@@ -170,7 +150,7 @@ export default function FloatingAIChatbot() {
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: data.message || "I apologize, but I encountered an error. Please try again.",
+        content: data.message || t("ai.error") || "Terjadi kesalahan. Silakan coba lagi.",
         role: "assistant",
         timestamp: new Date(),
       }
@@ -180,7 +160,7 @@ export default function FloatingAIChatbot() {
       console.error("Chat error:", error)
       const fallbackMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: "I'm sorry, I encountered an error. Please try again.",
+        content: t("ai.error") || "Terjadi kesalahan. Silakan coba lagi.",
         role: "assistant",
         timestamp: new Date(),
       }
@@ -211,36 +191,41 @@ export default function FloatingAIChatbot() {
 
   return (
     <>
-      {/* Floating Chat Button */}
+      {/* Floating Chat Trigger Button */}
       {!isOpen && (
         <Button
           onClick={openChat}
-          className="fixed bottom-6 right-6 h-14 w-14 rounded-full bg-sage-500 hover:bg-sage-600 shadow-lg z-50 p-0"
+          className="fixed bottom-6 right-6 h-14 w-14 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-xl z-50 p-0 border border-primary-foreground/20 transition-all active:-translate-y-px"
+          aria-label={t("header.aiChat") || "AI Chat"}
         >
           <div className="relative">
             <Bot className="h-6 w-6" />
             {hasNewMessage && (
-              <div className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full animate-pulse" />
+              <div className="absolute -top-1.5 -right-1.5 h-3.5 w-3.5 bg-primary-foreground border-2 border-primary rounded-full animate-pulse" />
             )}
           </div>
         </Button>
       )}
 
-      {/* Chat Window */}
+      {/* Floating Chat Window */}
       {isOpen && (
         <div className="fixed bottom-6 right-6 z-50">
           <Card
-            className={`w-96 shadow-2xl border-sage-200 transition-all duration-300 ${
-              isMinimized ? "h-14" : "h-[500px]"
+            className={`w-96 max-w-[calc(100vw-2rem)] shadow-2xl border-border bg-card text-card-foreground transition-all duration-300 rounded-2xl overflow-hidden ${
+              isMinimized ? "h-14" : "h-[520px]"
             }`}
           >
-            <CardHeader className="bg-sage-500 text-white rounded-t-lg p-3">
+            {/* Header */}
+            <CardHeader className="bg-primary text-primary-foreground p-3.5 rounded-t-2xl">
               <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2 text-sm">
+                <CardTitle className="flex items-center gap-2 text-sm font-display font-semibold">
                   <Bot className="h-4 w-4" />
-                  Maza Finance AI
-                  <Badge variant="secondary" className="bg-sage-400 text-sage-900 text-xs">
-                    Live
+                  <span>{t("ai.assistantName") || "Maza Finance AI"}</span>
+                  <Badge
+                    variant="secondary"
+                    className="bg-primary-foreground/20 text-primary-foreground border-0 text-[10px] px-1.5 py-0 font-mono"
+                  >
+                    {t("ai.live") || "Live"}
                   </Badge>
                 </CardTitle>
                 <div className="flex items-center gap-1">
@@ -248,68 +233,43 @@ export default function FloatingAIChatbot() {
                     onClick={minimizeChat}
                     size="sm"
                     variant="ghost"
-                    className="h-6 w-6 p-0 text-white hover:bg-sage-600"
+                    className="h-7 w-7 p-0 text-primary-foreground hover:bg-primary-foreground/15 rounded-lg"
+                    aria-label="Minimize"
                   >
-                    <Minimize2 className="h-3 w-3" />
+                    <Minimize2 className="h-3.5 w-3.5" />
                   </Button>
                   <Button
                     onClick={closeChat}
                     size="sm"
                     variant="ghost"
-                    className="h-6 w-6 p-0 text-white hover:bg-sage-600"
+                    className="h-7 w-7 p-0 text-primary-foreground hover:bg-primary-foreground/15 rounded-lg"
+                    aria-label="Close"
                   >
-                    <X className="h-3 w-3" />
+                    <X className="h-3.5 w-3.5" />
                   </Button>
                 </div>
               </div>
             </CardHeader>
 
             {!isMinimized && (
-              <CardContent className="flex flex-col p-0 h-[calc(500px-60px)]">
-                <ScrollArea ref={scrollAreaRef} className="flex-1 p-3">
+              <CardContent className="flex flex-col p-0 h-[calc(520px-56px)] bg-card">
+                <ScrollArea ref={scrollAreaRef} className="flex-1 p-3.5">
                   <div className="space-y-3">
                     {messages.map((message) => (
-                      <div
-                        key={message.id}
-                        className={`flex gap-2 ${message.role === "user" ? "justify-end" : "justify-start"}`}
-                      >
-                        <div
-                          className={`flex gap-2 max-w-[85%] ${message.role === "user" ? "flex-row-reverse" : "flex-row"}`}
-                        >
-                          <div
-                            className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
-                              message.role === "user" ? "bg-sage-500 text-white" : "bg-gray-100 text-gray-600"
-                            }`}
-                          >
-                            {message.role === "user" ? <User className="h-3 w-3" /> : <Bot className="h-3 w-3" />}
-                          </div>
-                          <div
-                            className={`rounded-lg p-2 ${
-                              message.role === "user" ? "bg-sage-500 text-white" : "bg-gray-100 text-gray-900"
-                            }`}
-                          >
-                            <p className="text-xs whitespace-pre-wrap">{message.content}</p>
-                            <span className="text-xs opacity-70 mt-1 block">
-                              {message.timestamp.toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
+                      <MessageBubble key={message.id} message={message} compact />
                     ))}
+
                     {isLoading && (
-                      <div className="flex gap-2 justify-start">
-                        <div className="flex gap-2">
-                          <div className="w-6 h-6 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center">
-                            <Bot className="h-3 w-3" />
-                          </div>
-                          <div className="bg-gray-100 rounded-lg p-2">
-                            <div className="flex items-center gap-2">
-                              <Loader2 className="h-3 w-3 animate-spin" />
-                              <span className="text-xs text-gray-600">Analyzing...</span>
-                            </div>
+                      <div className="flex gap-2 justify-start items-center">
+                        <div className="w-6 h-6 rounded-full bg-muted border border-border text-primary flex items-center justify-center">
+                          <Bot className="h-3.5 w-3.5" />
+                        </div>
+                        <div className="bg-card border border-border rounded-2xl rounded-tl-sm p-2.5 shadow-sm">
+                          <div className="flex items-center gap-2">
+                            <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+                            <span className="text-xs text-muted-foreground font-sans">
+                              {t("ai.analyzing") || "Menganalisis..."}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -318,46 +278,22 @@ export default function FloatingAIChatbot() {
                 </ScrollArea>
 
                 {messages.length <= 1 && (
-                  <div className="border-t p-2 bg-gray-50">
-                    <p className="text-xs font-medium text-gray-700 mb-2">Quick Questions:</p>
-                    <div className="grid grid-cols-1 gap-1">
-                      {quickQuestions.slice(0, 2).map((question, index) => (
-                        <Button
-                          key={index}
-                          onClick={() => sendQuickQuestion(question.text)}
-                          variant="outline"
-                          size="sm"
-                          className="justify-start text-left h-auto p-1.5 text-xs"
-                          disabled={isLoading}
-                        >
-                          <question.icon className="h-3 w-3 mr-1 flex-shrink-0" />
-                          <span className="truncate">{question.text}</span>
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
+                  <QuickQuestions
+                    onSelect={sendQuickQuestion}
+                    disabled={isLoading}
+                    compact
+                    columns={1}
+                    limit={2}
+                  />
                 )}
 
-                <div className="border-t p-2">
-                  <div className="flex gap-2">
-                    <Input
-                      value={input}
-                      onChange={(e) => setInput(e.target.value)}
-                      onKeyPress={handleKeyPress}
-                      placeholder="Ask about stocks, currencies, portfolio..."
-                      className="flex-1 text-xs h-8"
-                      disabled={isLoading}
-                    />
-                    <Button
-                      onClick={handleSendMessage}
-                      disabled={!input.trim() || isLoading}
-                      size="sm"
-                      className="bg-sage-500 hover:bg-sage-600 h-8 w-8 p-0"
-                    >
-                      {isLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
-                    </Button>
-                  </div>
-                </div>
+                <ChatInput
+                  value={input}
+                  onChange={setInput}
+                  onSend={handleSendMessage}
+                  isLoading={isLoading}
+                  compact
+                />
               </CardContent>
             )}
           </Card>

@@ -1,47 +1,20 @@
 "use client"
 
 import type React from "react"
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
-import {
-  Send,
-  Bot,
-  User,
-  Loader2,
-  MessageSquare,
-  Plus,
-  TrendingUp,
-  DollarSign,
-  PieChart,
-  Newspaper,
-} from "lucide-react"
+import { Bot, Loader2, MessageSquare, Plus, LogIn } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
-
-interface Message {
-  id: string
-  content: string
-  role: "user" | "assistant"
-  timestamp: Date
-}
-
-interface Conversation {
-  id: string
-  title: string
-  created_at: string
-}
-
-const quickQuestions = [
-  { icon: TrendingUp, text: "Show me BBRI stock price", category: "stocks" },
-  { icon: DollarSign, text: "USD to IDR exchange rate", category: "currency" },
-  { icon: PieChart, text: "Analyze my portfolio", category: "portfolio" },
-  { icon: Newspaper, text: "Latest market news", category: "news" },
-]
+import { useLanguage } from "@/lib/language-context"
+import { MessageBubble, QuickQuestions, ChatInput } from "@/components/chatbot"
+import type { Message, Conversation } from "@/components/chatbot"
 
 export default function AIChatbot() {
+  const { t } = useLanguage()
   const [messages, setMessages] = useState<Message[]>([])
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null)
@@ -50,6 +23,30 @@ export default function AIChatbot() {
   const [user, setUser] = useState<any>(null)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const supabase = createClient()
+
+  const loadConversations = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("chat_conversations")
+      .select("id, title, created_at")
+      .order("updated_at", { ascending: false })
+      .limit(10)
+
+    if (!error && data) {
+      setConversations(data)
+    }
+  }, [supabase])
+
+  const startNewConversation = useCallback(() => {
+    setMessages([
+      {
+        id: "welcome",
+        content: t("ai.welcome"),
+        role: "assistant",
+        timestamp: new Date(),
+      },
+    ])
+    setCurrentConversationId(null)
+  }, [t])
 
   useEffect(() => {
     const initializeUser = async () => {
@@ -64,19 +61,7 @@ export default function AIChatbot() {
     }
 
     initializeUser()
-  }, [])
-
-  const loadConversations = async () => {
-    const { data, error } = await supabase
-      .from("chat_conversations")
-      .select("id, title, created_at")
-      .order("updated_at", { ascending: false })
-      .limit(10)
-
-    if (!error && data) {
-      setConversations(data)
-    }
-  }
+  }, [loadConversations, supabase.auth])
 
   const loadConversation = async (conversationId: string) => {
     const { data, error } = await supabase
@@ -97,19 +82,6 @@ export default function AIChatbot() {
     }
   }
 
-  const startNewConversation = () => {
-    setMessages([
-      {
-        id: "welcome",
-        content:
-          "Hello! I'm your financial AI assistant powered by real-time market data. I can help you with:\n\n• Stock prices and market analysis\n• Currency exchange rates\n• Portfolio analysis and investment advice\n• Latest financial news and trends\n• Budgeting and financial planning\n• Indonesian market insights\n\nTry asking me about specific stocks (like BBRI or AAPL), currency rates, or your investment portfolio. How can I assist you today?",
-        role: "assistant",
-        timestamp: new Date(),
-      },
-    ])
-    setCurrentConversationId(null)
-  }
-
   const scrollToBottom = () => {
     if (scrollAreaRef.current) {
       const scrollContainer = scrollAreaRef.current.querySelector("[data-radix-scroll-area-viewport]")
@@ -127,7 +99,7 @@ export default function AIChatbot() {
     if (user && conversations.length === 0 && messages.length === 0) {
       startNewConversation()
     }
-  }, [user, conversations])
+  }, [user, conversations, messages.length, startNewConversation])
 
   const handleSendMessage = async () => {
     if (!input.trim() || isLoading || !user) return
@@ -163,7 +135,7 @@ export default function AIChatbot() {
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: data.message || "I apologize, but I encountered an error. Please try again.",
+        content: data.message || t("ai.error") || "Terjadi kesalahan. Silakan coba lagi.",
         role: "assistant",
         timestamp: new Date(),
       }
@@ -178,7 +150,7 @@ export default function AIChatbot() {
       console.error("Chat error:", error)
       const fallbackMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: "I'm sorry, I encountered an error. Please try again or start a new conversation.",
+        content: t("ai.error") || "Terjadi kesalahan. Silakan coba lagi.",
         role: "assistant",
         timestamp: new Date(),
       }
@@ -186,17 +158,6 @@ export default function AIChatbot() {
     } finally {
       setIsLoading(false)
     }
-  }
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault()
-      handleSendMessage()
-    }
-  }
-
-  const handleQuickQuestion = (question: string) => {
-    setInput(question)
   }
 
   const sendQuickQuestion = async (question: string) => {
@@ -232,7 +193,7 @@ export default function AIChatbot() {
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: data.message || "I apologize, but I encountered an error. Please try again.",
+        content: data.message || t("ai.error") || "Terjadi kesalahan. Silakan coba lagi.",
         role: "assistant",
         timestamp: new Date(),
       }
@@ -247,7 +208,7 @@ export default function AIChatbot() {
       console.error("Chat error:", error)
       const fallbackMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: "I'm sorry, I encountered an error. Please try again or start a new conversation.",
+        content: t("ai.error") || "Terjadi kesalahan. Silakan coba lagi.",
         role: "assistant",
         timestamp: new Date(),
       }
@@ -259,11 +220,24 @@ export default function AIChatbot() {
 
   if (!user) {
     return (
-      <section className="py-16 px-4 bg-gradient-to-br from-sage-50 to-white">
-        <div className="max-w-4xl mx-auto text-center">
-          <Card className="p-8">
-            <h3 className="text-xl font-semibold mb-4">Please Sign In</h3>
-            <p className="text-gray-600">You need to be signed in to use the AI Financial Assistant.</p>
+      <section className="py-12 px-4 bg-background">
+        <div className="max-w-xl mx-auto text-center">
+          <Card className="p-8 bg-card border border-border rounded-2xl shadow-sm">
+            <div className="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 text-primary mx-auto flex items-center justify-center mb-4">
+              <Bot className="w-6 h-6" />
+            </div>
+            <h3 className="text-xl font-display font-bold mb-2 text-foreground">
+              {t("ai.signInTitle") || "Silakan Masuk"}
+            </h3>
+            <p className="text-muted-foreground text-sm font-sans mb-6">
+              {t("ai.signInPrompt") || "Anda harus masuk untuk menggunakan Asisten AI Finansial."}
+            </p>
+            <Link href="/auth/signin">
+              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-xl">
+                <LogIn className="w-4 h-4 mr-2" />
+                {t("header.signIn") || "Masuk"}
+              </Button>
+            </Link>
           </Card>
         </div>
       </section>
@@ -271,117 +245,114 @@ export default function AIChatbot() {
   }
 
   return (
-    <section className="py-16 px-4 bg-gradient-to-br from-sage-50 to-white">
+    <section className="py-12 px-4 bg-background">
       <div className="max-w-6xl mx-auto">
+        {/* Section Header */}
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Financial AI Assistant</h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            Get personalized financial advice with real-time market data, investment guidance, and comprehensive
-            financial planning assistance
+          <h2 className="text-2xl md:text-3xl font-display font-bold text-foreground mb-2 tracking-tight">
+            {t("ai.title") || "Asisten Keuangan AI"}
+          </h2>
+          <p className="text-muted-foreground text-sm md:text-base max-w-2xl mx-auto font-sans text-pretty">
+            {t("ai.subtitle") ||
+              "Konsultasi keuangan dan investasi dengan AI yang komprehensif dan real-time"}
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Conversation History Sidebar */}
           <div className="lg:col-span-1">
-            <Card className="h-[600px] flex flex-col">
-              <CardHeader className="pb-3">
+            <Card className="h-[620px] flex flex-col bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+              <CardHeader className="p-4 border-b border-border bg-muted/30">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium">Conversations</CardTitle>
+                  <CardTitle className="text-sm font-display font-semibold text-foreground">
+                    {t("ai.conversations") || "Percakapan"}
+                  </CardTitle>
                   <Button
                     onClick={startNewConversation}
                     size="sm"
                     variant="outline"
-                    className="h-8 w-8 p-0 bg-transparent"
+                    className="h-8 w-8 p-0 rounded-lg border-border hover:border-primary/40 hover:text-primary transition-colors"
+                    aria-label={t("ai.newConversation") || "Percakapan Baru"}
                   >
                     <Plus className="h-4 w-4" />
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="flex-1 p-3">
+              <CardContent className="flex-1 p-3 overflow-hidden bg-card">
                 <ScrollArea className="h-full">
-                  <div className="space-y-2">
-                    {conversations.map((conv) => (
-                      <Button
-                        key={conv.id}
-                        onClick={() => loadConversation(conv.id)}
-                        variant={currentConversationId === conv.id ? "secondary" : "ghost"}
-                        className="w-full justify-start text-left h-auto p-3"
-                      >
-                        <div className="flex items-start gap-2 w-full">
-                          <MessageSquare className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium truncate">{conv.title}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {new Date(conv.created_at).toLocaleDateString()}
-                            </p>
+                  <div className="space-y-1.5 pr-2">
+                    {conversations.length === 0 ? (
+                      <p className="text-xs text-muted-foreground text-center py-6 font-sans">
+                        {t("ai.noConversations") || "Belum ada percakapan"}
+                      </p>
+                    ) : (
+                      conversations.map((conv) => (
+                        <Button
+                          key={conv.id}
+                          onClick={() => loadConversation(conv.id)}
+                          variant={currentConversationId === conv.id ? "secondary" : "ghost"}
+                          className={`w-full justify-start text-left h-auto p-2.5 rounded-xl transition-colors ${
+                            currentConversationId === conv.id
+                              ? "bg-muted text-foreground font-medium border border-border"
+                              : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                          }`}
+                        >
+                          <div className="flex items-start gap-2.5 w-full min-w-0">
+                            <MessageSquare className="h-4 w-4 mt-0.5 flex-shrink-0 text-primary" />
+                            <div className="min-w-0 flex-1">
+                              <p className="text-xs truncate">{conv.title}</p>
+                              <p className="text-[10px] text-muted-foreground font-mono tabular-nums">
+                                {new Date(conv.created_at).toLocaleDateString()}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                      </Button>
-                    ))}
+                        </Button>
+                      ))
+                    )}
                   </div>
                 </ScrollArea>
               </CardContent>
             </Card>
           </div>
 
-          {/* Chat area */}
+          {/* Chat Window Area */}
           <div className="lg:col-span-3">
-            <Card className="h-[600px] flex flex-col shadow-lg border-sage-200">
-              <CardHeader className="bg-sage-500 text-white rounded-t-lg">
-                <CardTitle className="flex items-center gap-2">
-                  <Bot className="h-5 w-5" />
-                  Maza Finance AI
-                  <Badge variant="secondary" className="ml-auto bg-sage-400 text-sage-900">
-                    Real-time Data
+            <Card className="h-[620px] flex flex-col shadow-sm border border-border bg-card rounded-2xl overflow-hidden">
+              {/* Chat Header */}
+              <CardHeader className="bg-muted/40 border-b border-border p-4">
+                <CardTitle className="flex items-center gap-2 text-sm md:text-base font-display font-semibold text-foreground">
+                  <div className="w-7 h-7 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                    <Bot className="h-4 w-4" />
+                  </div>
+                  <span>{t("ai.assistantName") || "Maza Finance AI"}</span>
+                  <Badge
+                    variant="secondary"
+                    className="ml-auto bg-primary/10 text-primary border-primary/20 text-[10px] font-mono"
+                  >
+                    {t("ai.realtimeBadge") || "Data Real-time"}
                   </Badge>
                 </CardTitle>
               </CardHeader>
 
-              <CardContent className="flex-1 flex flex-col p-0">
-                <ScrollArea ref={scrollAreaRef} className="flex-1 p-4">
+              {/* Chat Messages */}
+              <CardContent className="flex-1 flex flex-col p-0 overflow-hidden bg-card">
+                <ScrollArea ref={scrollAreaRef} className="flex-1 p-4 md:p-5">
                   <div className="space-y-4">
                     {messages.map((message) => (
-                      <div
-                        key={message.id}
-                        className={`flex gap-3 ${message.role === "user" ? "justify-end" : "justify-start"}`}
-                      >
-                        <div
-                          className={`flex gap-2 max-w-[80%] ${message.role === "user" ? "flex-row-reverse" : "flex-row"}`}
-                        >
-                          <div
-                            className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                              message.role === "user" ? "bg-sage-500 text-white" : "bg-gray-100 text-gray-600"
-                            }`}
-                          >
-                            {message.role === "user" ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
-                          </div>
-                          <div
-                            className={`rounded-lg p-3 ${
-                              message.role === "user" ? "bg-sage-500 text-white" : "bg-gray-100 text-gray-900"
-                            }`}
-                          >
-                            <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                            <span className="text-xs opacity-70 mt-1 block">
-                              {message.timestamp.toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
+                      <MessageBubble key={message.id} message={message} />
                     ))}
+
                     {isLoading && (
-                      <div className="flex gap-3 justify-start">
-                        <div className="flex gap-2">
-                          <div className="w-8 h-8 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center">
-                            <Bot className="h-4 w-4" />
-                          </div>
-                          <div className="bg-gray-100 rounded-lg p-3">
-                            <div className="flex items-center gap-2">
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                              <span className="text-sm text-gray-600">Analyzing financial data...</span>
-                            </div>
+                      <div className="flex gap-2.5 justify-start items-center">
+                        <div className="w-8 h-8 rounded-full bg-muted border border-border text-primary flex items-center justify-center flex-shrink-0">
+                          <Bot className="h-4 w-4" />
+                        </div>
+                        <div className="bg-card border border-border rounded-2xl rounded-tl-sm p-3 shadow-sm">
+                          <div className="flex items-center gap-2">
+                            <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                            <span className="text-xs text-muted-foreground font-sans">
+                              {t("ai.analyzing") || "AI sedang menganalisis..."}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -389,46 +360,22 @@ export default function AIChatbot() {
                   </div>
                 </ScrollArea>
 
+                {/* Quick questions if 1 or 0 messages */}
                 {messages.length <= 1 && (
-                  <div className="border-t border-b p-4 bg-gray-50">
-                    <p className="text-sm font-medium text-gray-700 mb-3">Quick Questions:</p>
-                    <div className="grid grid-cols-2 gap-2">
-                      {quickQuestions.map((question, index) => (
-                        <Button
-                          key={index}
-                          onClick={() => sendQuickQuestion(question.text)}
-                          variant="outline"
-                          size="sm"
-                          className="justify-start text-left h-auto p-2 text-xs"
-                          disabled={isLoading}
-                        >
-                          <question.icon className="h-3 w-3 mr-2 flex-shrink-0" />
-                          <span className="truncate">{question.text}</span>
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
+                  <QuickQuestions
+                    onSelect={sendQuickQuestion}
+                    disabled={isLoading}
+                    columns={2}
+                  />
                 )}
 
-                <div className="border-t p-4">
-                  <div className="flex gap-2">
-                    <Input
-                      value={input}
-                      onChange={(e) => setInput(e.target.value)}
-                      onKeyPress={handleKeyPress}
-                      placeholder="Ask about stocks, currencies, portfolio analysis, or financial planning..."
-                      className="flex-1"
-                      disabled={isLoading}
-                    />
-                    <Button
-                      onClick={handleSendMessage}
-                      disabled={!input.trim() || isLoading}
-                      className="bg-sage-500 hover:bg-sage-600"
-                    >
-                      {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                    </Button>
-                  </div>
-                </div>
+                {/* Input row */}
+                <ChatInput
+                  value={input}
+                  onChange={setInput}
+                  onSend={handleSendMessage}
+                  isLoading={isLoading}
+                />
               </CardContent>
             </Card>
           </div>

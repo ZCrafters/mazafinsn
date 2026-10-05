@@ -1,65 +1,18 @@
-// Global type declarations for Maza Finance Next.js application
+// Global type declarations for the project
 
-declare module '@/lib/financial-data' {
-  export interface FinancialData {
-    [key: string]: any;
-  }
-  export class FinancialDataService {
-    static getStockPrice(symbol: string): Promise<any>;
-    static getCurrencyRate(from: string, to: string): Promise<any>;
-    static getMarketNews(limit?: number): Promise<any[]>;
-    static getPortfolioAnalysis(userId: string): Promise<any>;
-  }
-}
+// If you need to declare React as a global namespace, it should be done like this:
+// However, this is typically not needed in modern React projects with proper imports
 
-declare module '@/components/ui/*' {
-  const Component: React.ComponentType<any>;
-  export default Component;
-}
+// Instead of using 'export as namespace React' which causes the error,
+// you should rely on the existing React type definitions from @types/react
 
-// Fix for AI library compatibility
-declare module 'openai/lib/AssistantStream' {
-  export class AssistantStream {
-    [key: string]: any;
+// If you need custom global types, declare them here:
+declare global {
+  // Add any global type declarations here if needed
+  interface Window {
+    // Example: custom window properties
   }
 }
 
-declare module 'openai/resources/beta/threads/runs/runs' {
-  export interface Run {
-    [key: string]: any;
-  }
-}
-
-declare module 'openai/resources/beta/threads/runs' {
-  export interface AssistantStream {
-    [key: string]: any;
-  }
-  export interface ThreadRuns {
-    [key: string]: any;
-  }
-}
-
-// Global CSS modules
-declare module '*.css' {
-  const content: { [className: string]: string };
-  export default content;
-}
-
-declare module '*.scss' {
-  const content: { [className: string]: string };
-  export default content;
-}
-
-// Environment variables
-declare namespace NodeJS {
-  interface ProcessEnv {
-    NEXT_PUBLIC_SUPABASE_URL: string;
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: string;
-    SUPABASE_SERVICE_ROLE_KEY: string;
-    DEEPSEEK_API_KEY: string;
-    DEEPSEEK_BASE_URL: string;
-    GROQ_API_KEY: string;
-    NEXTAUTH_SECRET: string;
-    NEXTAUTH_URL: string;
-  }
-}
+// This makes the file a module, preventing global scope pollution
+export {};

@@ -1,87 +1,95 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { TrendingUp, PieChart, Target, Smartphone, Shield, Zap } from "lucide-react"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { TrendingUp, PieChart, Target, Smartphone, Shield, Zap } from "lucide-react";
 
 const features = [
   {
     icon: TrendingUp,
     title: "Smart Investment Tracking",
-    description: "Monitor your portfolio performance with AI-powered insights and real-time market data.",
-    color: "text-green-600",
+    description:
+      "Monitor portofolio dengan insight AI dan data pasar real-time.",
   },
   {
     icon: PieChart,
     title: "Expense Analytics",
-    description: "Visualize your spending patterns with interactive charts and personalized recommendations.",
-    color: "text-blue-600",
+    description:
+      "Visualisasikan pola pengeluaran dengan grafik interaktif dan rekomendasi personal.",
   },
   {
     icon: Target,
     title: "Goal Setting",
-    description: "Set and track financial goals with automated savings plans and milestone celebrations.",
-    color: "text-purple-600",
+    description:
+      "Tetapkan dan lacak tujuan finansial dengan rencana tabungan otomatis.",
   },
   {
     icon: Smartphone,
     title: "Mobile Banking",
-    description: "Complete banking experience in your pocket with instant transfers and payments.",
-    color: "text-orange-600",
+    description:
+      "Pengalaman banking lengkap di genggaman: transfer dan pembayaran instan.",
   },
   {
     icon: Shield,
     title: "Security First",
-    description: "Bank-grade security with biometric authentication and fraud protection.",
-    color: "text-red-600",
+    description:
+      "Keamanan setara bank dengan autentikasi biometrik dan proteksi fraud.",
   },
   {
     icon: Zap,
     title: "Instant Notifications",
-    description: "Stay updated with real-time alerts for transactions, goals, and market changes.",
-    color: "text-yellow-600",
+    description:
+      "Alert real-time untuk transaksi, target, dan perubahan pasar.",
   },
-]
+];
 
 export default function DashboardFeatures() {
   return (
-    <section className="py-16 px-4 bg-gradient-to-br from-sage-50 to-white">
+    <section className="py-16 px-4 bg-muted/60">
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Fitur Unggulan Dashboard</h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Kelola keuangan Anda dengan mudah menggunakan fitur-fitur canggih yang dirancang khusus untuk generasi
-            digital
+        <div className="max-w-2xl mb-12">
+          <span className="text-xs font-medium uppercase tracking-widest text-[#2E8B57] dark:text-[#85a37a] mb-3 block">
+            Fitur
+          </span>
+          <h2 className="text-3xl font-bold text-foreground font-display tracking-tight mb-3">
+            Fitur unggulan dashboard
+          </h2>
+          <p className="text-muted-foreground leading-relaxed">
+            Kelola keuangan dengan fitur yang dirancang untuk generasi digital.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((feature, index) => {
-            const IconComponent = feature.icon
+            const IconComponent = feature.icon;
             return (
-              <Card key={index} className="card-hover border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+              <Card
+                key={index}
+                className={`card-hover border-border bg-card ${
+                  index === 1 || index === 4 ? "lg:translate-y-6" : ""
+                }`}
+              >
                 <CardHeader className="pb-4">
-                  <div className={`w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center mb-4`}>
-                    <IconComponent className={`w-6 h-6 ${feature.color}`} />
+                  <div className="w-12 h-12 rounded-xl bg-[#2E8B57]/10 flex items-center justify-center mb-4">
+                    <IconComponent className="w-6 h-6 text-[#2E8B57]" />
                   </div>
-                  <CardTitle className="text-xl font-semibold text-gray-900">{feature.title}</CardTitle>
+                  <CardTitle className="text-lg font-semibold text-foreground">{feature.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription className="text-gray-600 text-base leading-relaxed">
+                  <CardDescription className="text-muted-foreground leading-relaxed">
                     {feature.description}
                   </CardDescription>
                 </CardContent>
               </Card>
-            )
+            );
           })}
-        </div>
-
-        <div className="text-center mt-12">
-          <Button size="lg" className="bg-sage-600 hover:bg-sage-700 text-white px-8 py-3">
-            Mulai Sekarang
-          </Button>
         </div>
       </div>
     </section>
-  )
+  );
 }

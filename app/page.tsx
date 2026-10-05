@@ -1,28 +1,26 @@
-import type { Metadata } from "next"
-import Hero from "@/components/hero"
-import FinancialProblems from "@/components/financial-problems"
-import AuroraBackground from "@/components/aurora-background"
-import HowItWorks from "@/components/how-it-works"
-import GamificationPreview from "@/components/gamification-preview"
-import BackToTop from "@/components/back-to-top"
+import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
+import Hero from "@/components/hero";
+import FinancialProblems from "@/components/financial-problems";
+import HowItWorks from "@/components/how-it-works";
+import GamificationPreview from "@/components/gamification-preview";
+import BackToTop from "@/components/back-to-top";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Maza Finance - Kuasai Uangmu, Kuasai Masa Depanmu",
   description:
-    "Literasi finansial bukan lagi pilihan, tapi keharusan. Temukan masalah umum dan solusi praktis untuk membangun pondasi keuangan yang kokoh.",
-}
+    "Kelola keuangan jadi mudah: catat otomatis, investasi cerdas, dan belajar lewat game seru — semua dibantu AI.",
+  path: "/",
+});
 
 export default function HomePage() {
   return (
-    <main className="relative min-h-screen">
-      <AuroraBackground />
-      <div className="relative z-10">
-        <Hero />
-        <FinancialProblems />
-        <HowItWorks />
-        <GamificationPreview />
-      </div>
+    <main className="relative min-h-screen bg-background">
+      <Hero />
+      <FinancialProblems />
+      <HowItWorks />
+      <GamificationPreview />
       <BackToTop />
     </main>
-  )
+  );
 }

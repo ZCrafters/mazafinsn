@@ -1,20 +1,14 @@
 import type { Metadata } from "next"
-import NewsHero from "@/components/news/hero"
-import NewsContent from "@/components/news/content"
-import Newsletter from "@/components/news/newsletter"
+import { pageMetadata } from "@/lib/seo"
+import NewsPageClient from "@/components/news/news-page"
 
-export const metadata: Metadata = {
-  title: "Berita Investasi - Maza Finance",
+export const metadata: Metadata = pageMetadata({
+  title: "Berita Investasi & Pasar - Maza Finance",
   description:
-    "Dapatkan informasi terbaru seputar dunia investasi dan keuangan untuk membantu Anda mengambil keputusan finansial yang lebih baik.",
-}
+    "Berita pasar saham, cryptocurrency, ekonomi, dan investasi Indonesia terkini untuk membantu Anda mengambil keputusan finansial yang lebih baik.",
+  path: "/news",
+})
 
 export default function NewsPage() {
-  return (
-    <main>
-      <NewsHero />
-      <NewsContent />
-      <Newsletter />
-    </main>
-  )
+  return <NewsPageClient />
 }

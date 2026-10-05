@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Mail, Bell, TrendingUp, Clock, Users, CheckCircle } from "lucide-react"
 import { useState } from "react"
+import { useLanguage } from "@/lib/language-context"
 
 const newsletterFeatures = [
   {
@@ -58,6 +59,7 @@ const subscriptionPlans = [
 ]
 
 export default function Newsletter() {
+  const { t } = useLanguage()
   const [email, setEmail] = useState("")
   const [selectedPlans, setSelectedPlans] = useState<string[]>(["Weekly Digest"])
   const [isSubscribed, setIsSubscribed] = useState(false)
@@ -74,21 +76,20 @@ export default function Newsletter() {
 
   if (isSubscribed) {
     return (
-      <section className="py-16 px-4 bg-gradient-to-br from-green-50 to-emerald-50">
+      <section className="py-16 px-4 bg-muted/60" id="newsletter">
         <div className="max-w-2xl mx-auto text-center">
-          <Card className="border-0 shadow-xl">
+          <Card className="border-0 shadow-xl bg-card">
             <CardContent className="p-12">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <CheckCircle className="w-8 h-8 text-green-600" />
+              <div className="w-16 h-16 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
               </div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Berhasil Berlangganan!</h2>
-              <p className="text-lg text-gray-600 mb-6">
-                Terima kasih telah berlangganan newsletter kami. Email konfirmasi telah dikirim ke{" "}
-                <strong>{email}</strong>
+              <h2 className="text-3xl font-bold text-foreground mb-4">{t("newsletter.successTitle")}</h2>
+              <p className="text-lg text-muted-foreground mb-6">
+                {t("newsletter.successDescription").replace("{email}", email)}
               </p>
-              <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                <h3 className="font-semibold text-gray-900 mb-2">Langganan Aktif:</h3>
-                <ul className="text-sm text-gray-600 space-y-1">
+              <div className="bg-muted rounded-lg p-4 mb-6">
+                <h3 className="font-semibold text-foreground mb-2">{t("newsletter.activeSubscriptions")}</h3>
+                <ul className="text-sm text-muted-foreground space-y-1">
                   {selectedPlans.map((plan, index) => (
                     <li key={index} className="flex items-center gap-2">
                       <CheckCircle className="w-4 h-4 text-green-500" />
@@ -98,9 +99,9 @@ export default function Newsletter() {
                 </ul>
               </div>
               <Button onClick={() => setIsSubscribed(false)} variant="outline" className="mr-4">
-                Ubah Langganan
+                {t("newsletter.changePlan")}
               </Button>
-              <Button className="bg-sage-600 hover:bg-sage-700">Kembali ke Berita</Button>
+              <Button className="bg-sage-600 hover:bg-sage-700 text-white">{t("newsletter.backToNews")}</Button>
             </CardContent>
           </Card>
         </div>
@@ -109,13 +110,11 @@ export default function Newsletter() {
   }
 
   return (
-    <section className="py-16 px-4 bg-gradient-to-br from-sage-50 to-blue-50">
+    <section className="py-16 px-4 bg-gradient-to-br from-sage-50 to-blue-50 dark:from-sage-900/40 dark:to-sage-950/60" id="newsletter">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Newsletter Finansial</h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Dapatkan insight terbaru tentang pasar keuangan, tips investasi, dan berita finansial langsung di inbox Anda
-          </p>
+          <h2 className="text-3xl font-bold text-foreground mb-4">{t("newsletter.title")}</h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">{t("newsletter.subtitle")}</p>
         </div>
 
         {/* Features */}
@@ -123,13 +122,13 @@ export default function Newsletter() {
           {newsletterFeatures.map((feature, index) => {
             const IconComponent = feature.icon
             return (
-              <Card key={index} className="text-center border-0 shadow-md">
+              <Card key={index} className="text-center border-0 shadow-md bg-card">
                 <CardContent className="p-6">
-                  <div className="w-12 h-12 bg-sage-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                    <IconComponent className="w-6 h-6 text-sage-600" />
+                  <div className="w-12 h-12 bg-sage-100 dark:bg-sage-900/40 rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <IconComponent className="w-6 h-6 text-sage-600 dark:text-sage-300" />
                   </div>
-                  <h3 className="font-semibold text-gray-900 mb-2">{feature.title}</h3>
-                  <p className="text-sm text-gray-600">{feature.description}</p>
+                  <h3 className="font-semibold text-foreground mb-2">{feature.title}</h3>
+                  <p className="text-sm text-muted-foreground">{feature.description}</p>
                 </CardContent>
               </Card>
             )
@@ -138,17 +137,17 @@ export default function Newsletter() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Subscription Form */}
-          <Card className="border-0 shadow-xl">
+          <Card className="border-0 shadow-xl bg-card">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Mail className="w-5 h-5 text-sage-600" />
-                Berlangganan Newsletter
+              <CardTitle className="flex items-center gap-2 text-foreground">
+                <Mail className="w-5 h-5 text-sage-600 dark:text-sage-300" />
+                {t("newsletter.subscribeTitle")}
               </CardTitle>
-              <CardDescription>Pilih jenis newsletter yang ingin Anda terima</CardDescription>
+              <CardDescription>{t("newsletter.subscribeDescription")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
+                <Label htmlFor="email">{t("newsletter.emailLabel")}</Label>
                 <Input
                   id="email"
                   type="email"
@@ -160,18 +159,18 @@ export default function Newsletter() {
               </div>
 
               <div className="space-y-4">
-                <Label className="text-base font-medium">Pilih Newsletter:</Label>
+                <Label className="text-base font-medium text-foreground">{t("newsletter.choosePlans")}</Label>
                 {subscriptionPlans.map((plan, index) => (
                   <div key={index} className="relative">
                     <div
-                      className={`border rounded-lg p-4 cursor-pointer transition-all ${
+                      className={`border rounded-lg p-4 cursor-pointer transition-all bg-card ${
                         selectedPlans.includes(plan.name)
-                          ? "border-sage-500 bg-sage-50"
-                          : "border-gray-200 hover:border-gray-300"
-                      } ${plan.popular ? "ring-2 ring-sage-200" : ""}`}
+                          ? "border-sage-500 bg-sage-50 dark:bg-sage-900/30"
+                          : "border-border hover:border-muted-foreground/40"
+                      } ${plan.popular ? "ring-2 ring-sage-200 dark:ring-sage-800" : ""}`}
                     >
                       {plan.popular && (
-                        <Badge className="absolute -top-2 left-4 bg-sage-600 text-white text-xs">Populer</Badge>
+                        <Badge className="absolute -top-2 left-4 bg-sage-600 text-white text-xs">{t("newsletter.popular")}</Badge>
                       )}
                       <div className="flex items-start gap-3">
                         <Checkbox
@@ -181,11 +180,11 @@ export default function Newsletter() {
                         />
                         <div className="flex-1">
                           <div className="flex items-center justify-between mb-2">
-                            <h3 className="font-semibold text-gray-900">{plan.name}</h3>
-                            <span className="text-sm text-gray-500">{plan.frequency}</span>
+                            <h3 className="font-semibold text-foreground">{plan.name}</h3>
+                            <span className="text-sm text-muted-foreground">{plan.frequency}</span>
                           </div>
-                          <p className="text-sm text-gray-600 mb-3">{plan.description}</p>
-                          <ul className="text-xs text-gray-500 space-y-1">
+                          <p className="text-sm text-muted-foreground mb-3">{plan.description}</p>
+                          <ul className="text-xs text-muted-foreground space-y-1">
                             {plan.features.map((feature, featureIndex) => (
                               <li key={featureIndex} className="flex items-center gap-2">
                                 <CheckCircle className="w-3 h-3 text-green-500" />
@@ -202,14 +201,14 @@ export default function Newsletter() {
 
               <div className="flex items-center space-x-2">
                 <Checkbox id="terms" />
-                <Label htmlFor="terms" className="text-sm text-gray-600">
-                  Saya setuju dengan{" "}
+                <Label htmlFor="terms" className="text-sm text-muted-foreground">
+                  {t("newsletter.termsPrefix")}{" "}
                   <a href="#" className="text-sage-600 hover:underline">
-                    syarat dan ketentuan
+                    {t("newsletter.termsLink")}
                   </a>{" "}
-                  serta{" "}
+                  {t("newsletter.termsAnd")}{" "}
                   <a href="#" className="text-sage-600 hover:underline">
-                    kebijakan privasi
+                    {t("newsletter.privacyLink")}
                   </a>
                 </Label>
               </div>
@@ -217,56 +216,54 @@ export default function Newsletter() {
               <Button
                 onClick={handleSubscribe}
                 disabled={!email || selectedPlans.length === 0}
-                className="w-full bg-sage-600 hover:bg-sage-700 disabled:opacity-50"
+                className="w-full bg-sage-600 hover:bg-sage-700 text-white disabled:opacity-50"
                 size="lg"
               >
                 <Mail className="w-4 h-4 mr-2" />
-                Berlangganan Sekarang
+                {t("newsletter.subscribeNow")}
               </Button>
             </CardContent>
           </Card>
 
           {/* Stats & Testimonials */}
           <div className="space-y-6">
-            <Card className="border-0 shadow-lg">
+            <Card className="border-0 shadow-lg bg-card">
               <CardContent className="p-6">
-                <h3 className="font-bold text-gray-900 mb-4">Mengapa Berlangganan?</h3>
+                <h3 className="font-bold text-foreground mb-4">{t("newsletter.whyTitle")}</h3>
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-sage-600 mb-1">50K+</div>
-                    <div className="text-sm text-gray-600">Subscriber Aktif</div>
+                    <div className="text-2xl font-bold text-sage-600 dark:text-sage-400 mb-1">50K+</div>
+                    <div className="text-sm text-muted-foreground">{t("newsletter.ctaSubscribers")}</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-sage-600 mb-1">4.8★</div>
-                    <div className="text-sm text-gray-600">Rating Newsletter</div>
+                    <div className="text-2xl font-bold text-sage-600 dark:text-sage-400 mb-1">4.8★</div>
+                    <div className="text-sm text-muted-foreground">{t("newsletter.ctaRating")}</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-sage-600 mb-1">95%</div>
-                    <div className="text-sm text-gray-600">Open Rate</div>
+                    <div className="text-2xl font-bold text-sage-600 dark:text-sage-400 mb-1">95%</div>
+                    <div className="text-sm text-muted-foreground">{t("newsletter.ctaOpenRate")}</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-sage-600 mb-1">Free</div>
-                    <div className="text-sm text-gray-600">Selamanya</div>
+                    <div className="text-2xl font-bold text-sage-600 dark:text-sage-400 mb-1">Free</div>
+                    <div className="text-sm text-muted-foreground">{t("newsletter.ctaForever")}</div>
                   </div>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <p className="text-sm text-gray-600 italic">
+                <div className="bg-muted rounded-lg p-4">
+                  <p className="text-sm text-muted-foreground italic">
                     &ldquo;Newsletter Maza Finance membantu saya tetap update dengan perkembangan pasar. Analisisnya sangat
                     mudah dipahami dan actionable.&rdquo;
                   </p>
-                  <div className="mt-2 text-xs text-gray-500">- Sarah, Investor Retail</div>
+                  <div className="mt-2 text-xs text-muted-foreground">- Sarah, Investor Retail</div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-600 to-blue-700 text-white">
+            <Card className="border-0 shadow-lg bg-gradient-to-br from-sage-600 to-sage-800 text-white">
               <CardContent className="p-6">
-                <h3 className="font-bold mb-2">Premium Newsletter</h3>
-                <p className="text-blue-100 text-sm mb-4">
-                  Upgrade ke premium untuk mendapatkan analisis eksklusif, research report, dan akses ke webinar bulanan
-                </p>
-                <Button variant="secondary" className="w-full bg-white text-blue-700 hover:bg-gray-100">
-                  Pelajari Premium
+                <h3 className="font-bold mb-2">{t("newsletter.premiumTitle")}</h3>
+                <p className="text-sage-100 text-sm mb-4">{t("newsletter.premiumDescription")}</p>
+                <Button variant="secondary" className="w-full bg-white text-sage-800 hover:bg-gray-100">
+                  {t("newsletter.premiumCta")}
                 </Button>
               </CardContent>
             </Card>

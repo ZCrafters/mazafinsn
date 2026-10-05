@@ -1,14 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
-import Groq from "groq-sdk"
 
-// Groq API configuration
-const GROQ_API_KEY = process.env.GROQ_API_KEY || "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"
-
-if (!GROQ_API_KEY) {
-  throw new Error("GROQ_API_KEY environment variable is required")
-}
-
-const groq = new Groq({ apiKey: GROQ_API_KEY })
+// Google Gemini API configuration
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY
+const GEMINI_BASE_URL = process.env.GEMINI_BASE_URL || "https://generativelanguage.googleapis.com/v1beta"
 
 const FINANCIAL_SYSTEM_PROMPT = `**Situation**
 Anda adalah AI Chatbot keuangan dan investasi yang komprehensif, dirancang untuk memberikan informasi akurat, terkini, dan bermanfaat tentang berbagai aspek keuangan termasuk berita finansial, strategi investasi, Curated Goal Investment, cryptocurrency, pasar saham, dan instrumen keuangan lainnya.
@@ -120,24 +114,40 @@ export async function POST(request: NextRequest) {
 
     const financialContext = await processFinancialQuery(message, "guest_user")
 
-    // Use Groq API
-    const chatCompletion = await groq.chat.completions.create({
-      messages: [
-        {
-          role: 'system',
-          content: FINANCIAL_SYSTEM_PROMPT
-        },
-        {
-          role: 'user',
-          content: message + (financialContext ? `\n\nData keuangan real-time:${financialContext}` : "")
+    if (!GEMINI_API_KEY) {
+      return NextResponse.json({ error: "Gemini API key not configured" }, { status: 500 })
+    }
+
+    // Use Google Gemini API
+    const response = await fetch(`${GEMINI_BASE_URL}/models/gemini-2.0-flash:generateContent`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-goog-api-key': GEMINI_API_KEY,
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              {
+                text: `${FINANCIAL_SYSTEM_PROMPT}\n\nUser: ${message}${financialContext ? `\n\nData keuangan real-time:${financialContext}` : ""}`
+              }
+            ]
+          }
+        ],
+        generationConfig: {
+          maxOutputTokens: 1000,
+          temperature: 0.7
         }
-      ],
-      model: 'llama3-8b-8192',
-      max_tokens: 1000,
-      temperature: 0.7
+      })
     })
 
-    const text = chatCompletion.choices?.[0]?.message?.content || "Maaf, terjadi kesalahan dalam memproses permintaan Anda."
+    if (!response.ok) {
+      throw new Error(`Gemini API error: ${response.status}`)
+    }
+
+    const data = await response.json()
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "Maaf, terjadi kesalahan dalam memproses permintaan Anda."
     
     const filteredText = filterThinkingTags(text)
 
@@ -154,7 +164,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Handle API key errors
-    if (error instanceof Error && error.message.includes("GROQ_API_KEY")) {
+    if (error instanceof Error && error.message.includes("GEMINI_API_KEY")) {
       return NextResponse.json({ error: "Server configuration error" }, { status: 500 })
     }
     

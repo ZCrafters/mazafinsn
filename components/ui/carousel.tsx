@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react"
 import { motion, type PanInfo, useMotionValue } from "framer-motion"
 import type { ReactElement } from "react"
 
-import { FiCircle, FiCode, FiFileText, FiLayers, FiLayout } from "react-icons/fi"
+import { Circle, Code, FileText, Layers, Layout } from "lucide-react"
 
 // Interfaces
 export interface CarouselItem {
@@ -31,31 +31,31 @@ const DEFAULT_ITEMS: CarouselItem[] = [
     title: "Text Animations",
     description: "Cool text animations for your projects.",
     id: 1,
-    icon: <FiFileText className="h-[16px] w-[16px] text-white" />,
+    icon: <FileText className="h-[16px] w-[16px] text-white" />,
   },
   {
     title: "Animations",
     description: "Smooth animations for your projects.",
     id: 2,
-    icon: <FiCircle className="h-[16px] w-[16px] text-white" />,
+    icon: <Circle className="h-[16px] w-[16px] text-white" />,
   },
   {
     title: "Components",
     description: "Reusable components for your projects.",
     id: 3,
-    icon: <FiLayers className="h-[16px] w-[16px] text-white" />,
+    icon: <Layers className="h-[16px] w-[16px] text-white" />,
   },
   {
     title: "Backgrounds",
     description: "Beautiful backgrounds and patterns for your projects.",
     id: 4,
-    icon: <FiLayout className="h-[16px] w-[16px] text-white" />,
+    icon: <Layout className="h-[16px] w-[16px] text-white" />,
   },
   {
     title: "Common UI",
     description: "Common UI components are coming soon!",
     id: 5,
-    icon: <FiCode className="h-[16px] w-[16px] text-white" />,
+    icon: <Code className="h-[16px] w-[16px] text-white" />,
   },
 ]
 
@@ -85,8 +85,8 @@ export const Component = ({
   loop = false,
   round = false,
 }: CarouselProps): ReactElement => {
-  const containerPadding = 16
-  const itemWidth = baseWidth - containerPadding * 2
+  const containerPadding = 24
+  const itemWidth = Math.min(baseWidth - containerPadding * 2, 600)
   const trackItemOffset = itemWidth + GAP
 
   // If loop is true, a clone of the first item is added to the end for seamless transition.
@@ -177,17 +177,18 @@ export const Component = ({
     }
   }
 
-  const containerWidth = baseWidth * 1.4
-  const centerOffset = containerWidth / 2 - (itemWidth * 1.2) / 2
+  const containerWidth = baseWidth * 1.2
+  const centerOffset = containerWidth / 2 - (itemWidth * 1.1) / 2
 
   return (
     <div
       ref={containerRef}
-      className={`relative overflow-hidden p-4 min-h-[500px] w-full max-w-5xl mx-auto flex items-center justify-center ${
-        round ? "rounded-full border border-white" : "rounded-[32px] border border-[#222]"
+      className={`relative overflow-hidden p-6 min-h-[450px] w-full max-w-7xl mx-auto flex items-center justify-center ${
+        round ? "rounded-full border border-white" : "rounded-[24px] border border-[#333]/10"
       }`}
       style={{
-        height: round ? `${Math.min(baseWidth * 1.2, 500)}px` : "auto",
+        height: round ? `${Math.min(baseWidth * 1.2, 450)}px` : "auto",
+        minHeight: itemWidth * 0.75 + 100,
       }}
     >
       <motion.div
@@ -206,15 +207,14 @@ export const Component = ({
           x:
             -(currentIndex * (itemWidth * 1.1 + GAP)) +
             (containerRef.current?.offsetWidth || containerWidth) / 2 -
-            (itemWidth * 1.1) / 2 +
-            (typeof window !== "undefined" ? window.innerWidth * 1.7 : 0),
+            (itemWidth * 1.1) / 2,
         }}
         transition={effectiveTransition}
         onAnimationComplete={handleAnimationComplete}
       >
         {carouselItems.map((item, index) => {
           const scale = index === currentIndex ? 1 : 0.9
-          const opacity = index === currentIndex ? 1 : 0.4
+          const opacity = Math.abs(index - currentIndex) > 2 ? 0.3 : index === currentIndex ? 1 : 0.7
 
           return (
             <motion.div
@@ -222,8 +222,8 @@ export const Component = ({
               className={`relative shrink-0 flex flex-col ${
                 round
                   ? "items-center justify-center text-center bg-gradient-to-br from-[#1a1a1a] to-[#060606] border-0"
-                  : "items-start justify-between border border-[#333] rounded-[16px]"
-              } overflow-hidden cursor-grab active:cursor-grabbing shadow-2xl`}
+                  : "items-start justify-between bg-gradient-to-br from-[#2a2a2a] via-[#222] to-[#1a1a1a] border border-[#333] rounded-[16px]"
+              } overflow-hidden cursor-grab active:cursor-grabbing shadow-2xl hover:shadow-3xl transition-shadow duration-300`}
               style={{
                 width: itemWidth * 1.1,
                 height: round ? itemWidth * 1.1 : itemWidth * 0.75,
@@ -242,7 +242,7 @@ export const Component = ({
               }}
               transition={effectiveTransition}
             >
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-black/20 pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/20 to-transparent pointer-events-none" />
 
               <div className={`${round ? "p-0 m-0 relative z-10" : "mb-4 p-6 relative z-10"}`}>
                 <span className="flex h-[48px] w-[48px] items-center justify-center rounded-full bg-gradient-to-br from-[#333] to-[#060606] shadow-lg border border-[#444]">

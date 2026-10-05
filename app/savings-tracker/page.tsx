@@ -1,34 +1,43 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Progress } from "@/components/ui/progress"
-import { Badge } from "@/components/ui/badge"
-import { PiggyBank, Calendar, Plus, Edit } from "lucide-react"
-import { createClient } from "@/lib/supabase/client"
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Target, Calendar, Plus, ArrowLeft, Loader2 } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import Link from "next/link";
 
 interface SavingsGoal {
-  id: string
-  title: string
-  target_amount: number
-  current_amount: number
-  target_date: string
-  category: string
-  created_at: string
+  id: string;
+  title: string;
+  target_amount: number;
+  current_amount: number;
+  target_date: string;
+  category: string;
+  created_at: string;
 }
 
 export default function SavingsTracker() {
-  const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>([])
-  const [isAddingGoal, setIsAddingGoal] = useState(false)
+  const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>([]);
+  const [isAddingGoal, setIsAddingGoal] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [newGoal, setNewGoal] = useState({
     title: "",
     target_amount: "",
     target_date: "",
     category: "🎯 Umum",
-  })
+  });
 
   const categories = [
     "🎯 Umum",
@@ -39,43 +48,48 @@ export default function SavingsTracker() {
     "🎓 Pendidikan",
     "🏥 Kesehatan",
     "📱 Gadget",
-  ]
+  ];
 
   useEffect(() => {
-    loadSavingsGoals()
-  }, [])
+    loadSavingsGoals();
+  }, []);
 
   const loadSavingsGoals = async () => {
     try {
-      const supabase = createClient()
+      const supabase = createClient();
       const {
         data: { user },
-      } = await supabase.auth.getUser()
+      } = await supabase.auth.getUser();
 
-      if (!user) return
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
 
       const { data } = await supabase
         .from("savings_goals")
         .select("*")
         .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
+        .order("created_at", { ascending: false });
 
       if (data) {
-        setSavingsGoals(data)
+        setSavingsGoals(data);
       }
     } catch (error) {
-      console.error("Error loading savings goals:", error)
+      console.error("Error loading savings goals:", error);
+    } finally {
+      setIsLoading(false);
     }
-  }
+  };
 
   const addSavingsGoal = async () => {
     try {
-      const supabase = createClient()
+      const supabase = createClient();
       const {
         data: { user },
-      } = await supabase.auth.getUser()
+      } = await supabase.auth.getUser();
 
-      if (!user) return
+      if (!user) return;
 
       await supabase.from("savings_goals").insert({
         user_id: user.id,
@@ -84,81 +98,106 @@ export default function SavingsTracker() {
         current_amount: 0,
         target_date: newGoal.target_date,
         category: newGoal.category,
-      })
+      });
 
-      setNewGoal({ title: "", target_amount: "", target_date: "", category: "🎯 Umum" })
-      setIsAddingGoal(false)
-      loadSavingsGoals()
+      setNewGoal({ title: "", target_amount: "", target_date: "", category: "🎯 Umum" });
+      setIsAddingGoal(false);
+      loadSavingsGoals();
     } catch (error) {
-      console.error("Error adding savings goal:", error)
+      console.error("Error adding savings goal:", error);
     }
-  }
+  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
       currency: "IDR",
       minimumFractionDigits: 0,
-    }).format(amount)
-  }
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
 
   const calculateProgress = (current: number, target: number) => {
-    return Math.min((current / target) * 100, 100)
-  }
+    if (!target || target <= 0) return 0;
+    return Math.min((current / target) * 100, 100);
+  };
 
   const getDaysRemaining = (targetDate: string) => {
-    const today = new Date()
-    const target = new Date(targetDate)
-    const diffTime = target.getTime() - today.getTime()
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-    return diffDays
+    const today = new Date();
+    const target = new Date(targetDate);
+    const diffTime = target.getTime() - today.getTime();
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[100dvh] bg-background text-muted-foreground gap-3">
+        <Loader2 className="h-7 w-7 animate-spin text-primary" />
+        <p className="text-xs">Memuat pelacak tabungan...</p>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 p-6">
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2 flex items-center gap-3">
-            <PiggyBank className="w-10 h-10 text-blue-400" />
-            Savings Tracker
-          </h1>
-          <p className="text-slate-300">Track your savings goals and achieve your financial dreams</p>
-        </div>
+    <div className="min-h-[100dvh] bg-background text-foreground py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-border/70">
+          <div className="flex items-center gap-4">
+            <Link href="/management">
+              <Button variant="outline" size="sm" className="border-border text-foreground h-9">
+                <ArrowLeft className="w-4 h-4 mr-1.5" />
+                Kembali
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold font-display tracking-tight text-foreground">
+                Pelacak Tabungan
+              </h1>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                Pantau perkembangan tabungan impian dan sisa waktu target
+              </p>
+            </div>
+          </div>
 
-        {/* Add New Goal Button */}
-        <div className="mb-6">
           <Button
             onClick={() => setIsAddingGoal(true)}
-            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium h-9 text-xs sm:text-sm"
           >
-            <Plus className="w-4 h-4 mr-2" />
-            Add New Savings Goal
+            <Plus className="w-4 h-4 mr-1.5" />
+            Tambah Sasaran
           </Button>
         </div>
 
         {/* Add Goal Form */}
         {isAddingGoal && (
-          <Card className="mb-6 bg-slate-800/50 border-slate-700">
-            <CardHeader>
-              <CardTitle className="text-white">Create New Savings Goal</CardTitle>
+          <Card className="border border-border bg-card shadow-sm">
+            <CardHeader className="border-b border-border/60 pb-3">
+              <CardTitle className="text-base font-semibold text-foreground">
+                Buat Sasaran Tabungan Baru
+              </CardTitle>
+              <CardDescription className="text-xs text-muted-foreground">
+                Masukkan detail rencana tabungan Anda
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="title" className="text-slate-300">
-                  Goal Title
+            <CardContent className="p-5 space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="title" className="text-xs font-medium text-foreground">
+                  Nama Sasaran
                 </Label>
                 <Input
                   id="title"
                   value={newGoal.title}
                   onChange={(e) => setNewGoal({ ...newGoal, title: e.target.value })}
-                  placeholder="e.g., Emergency Fund, Vacation to Bali"
-                  className="bg-slate-700 border-slate-600 text-white"
+                  placeholder="Contoh: Dana Darurat, Wisata ke Jepang"
+                  className="bg-background border-border h-9 text-xs sm:text-sm"
                 />
               </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="amount" className="text-slate-300">
-                    Target Amount (IDR)
+                <div className="space-y-1.5">
+                  <Label htmlFor="amount" className="text-xs font-medium text-foreground">
+                    Target Nominal (IDR)
                   </Label>
                   <Input
                     id="amount"
@@ -166,49 +205,59 @@ export default function SavingsTracker() {
                     value={newGoal.target_amount}
                     onChange={(e) => setNewGoal({ ...newGoal, target_amount: e.target.value })}
                     placeholder="50000000"
-                    className="bg-slate-700 border-slate-600 text-white"
+                    className="bg-background border-border h-9 text-xs sm:text-sm font-mono tabular-nums"
                   />
                 </div>
-                <div>
-                  <Label htmlFor="date" className="text-slate-300">
-                    Target Date
+                <div className="space-y-1.5">
+                  <Label htmlFor="date" className="text-xs font-medium text-foreground">
+                    Batas Waktu Target
                   </Label>
                   <Input
                     id="date"
                     type="date"
                     value={newGoal.target_date}
                     onChange={(e) => setNewGoal({ ...newGoal, target_date: e.target.value })}
-                    className="bg-slate-700 border-slate-600 text-white"
+                    className="bg-background border-border h-9 text-xs sm:text-sm"
                   />
                 </div>
               </div>
-              <div>
-                <Label htmlFor="category" className="text-slate-300">
-                  Category
+
+              <div className="space-y-1.5">
+                <Label htmlFor="category" className="text-xs font-medium text-foreground">
+                  Kategori
                 </Label>
-                <select
-                  id="category"
+                <Select
                   value={newGoal.category}
-                  onChange={(e) => setNewGoal({ ...newGoal, category: e.target.value })}
-                  className="w-full p-2 bg-slate-700 border border-slate-600 rounded-md text-white"
+                  onValueChange={(val) => setNewGoal({ ...newGoal, category: val })}
                 >
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="bg-background border-border h-9 text-xs sm:text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card border-border">
+                    {categories.map((cat) => (
+                      <SelectItem key={cat} value={cat} className="text-xs sm:text-sm">
+                        {cat}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              <div className="flex gap-2">
-                <Button onClick={addSavingsGoal} className="bg-green-600 hover:bg-green-700">
-                  Create Goal
-                </Button>
+
+              <div className="flex gap-2 justify-end pt-2 border-t border-border/60">
                 <Button
                   onClick={() => setIsAddingGoal(false)}
                   variant="outline"
-                  className="border-slate-600 text-slate-300"
+                  size="sm"
+                  className="border-border text-foreground h-9 text-xs"
                 >
-                  Cancel
+                  Batal
+                </Button>
+                <Button
+                  onClick={addSavingsGoal}
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground h-9 text-xs font-medium"
+                >
+                  Simpan Sasaran
                 </Button>
               </div>
             </CardContent>
@@ -216,90 +265,90 @@ export default function SavingsTracker() {
         )}
 
         {/* Savings Goals Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {savingsGoals.map((goal) => {
-            const progress = calculateProgress(goal.current_amount, goal.target_amount)
-            const daysRemaining = getDaysRemaining(goal.target_date)
+            const progress = calculateProgress(goal.current_amount, goal.target_amount);
+            const daysRemaining = getDaysRemaining(goal.target_date);
 
             return (
-              <Card key={goal.id} className="bg-slate-800/50 border-slate-700 hover:bg-slate-800/70 transition-all">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-white text-lg">{goal.title}</CardTitle>
-                    <Badge variant="outline" className="border-blue-400 text-blue-400">
+              <Card key={goal.id} className="border border-border bg-card shadow-sm hover:border-primary/40 transition-colors">
+                <CardHeader className="pb-3 border-b border-border/40">
+                  <div className="flex items-center justify-between gap-2">
+                    <CardTitle className="text-base font-semibold text-foreground truncate">
+                      {goal.title}
+                    </CardTitle>
+                    <Badge variant="secondary" className="text-[11px] font-normal flex-shrink-0">
                       {goal.category}
                     </Badge>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <div className="flex justify-between text-sm text-slate-300 mb-2">
-                      <span>Progress</span>
-                      <span>{progress.toFixed(1)}%</span>
+                <CardContent className="p-5 space-y-4">
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-xs font-mono tabular-nums">
+                      <span className="text-muted-foreground">Progress</span>
+                      <span className="font-semibold text-foreground">{progress.toFixed(1)}%</span>
                     </div>
                     <Progress value={progress} className="h-2" />
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-2 text-xs font-mono tabular-nums">
                     <div className="flex justify-between">
-                      <span className="text-slate-400">Current:</span>
-                      <span className="text-green-400 font-semibold">{formatCurrency(goal.current_amount)}</span>
+                      <span className="text-muted-foreground">Terkumpul:</span>
+                      <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                        {formatCurrency(goal.current_amount)}
+                      </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-400">Target:</span>
-                      <span className="text-blue-400 font-semibold">{formatCurrency(goal.target_amount)}</span>
+                      <span className="text-muted-foreground">Target Sasaran:</span>
+                      <span className="text-foreground font-semibold">
+                        {formatCurrency(goal.target_amount)}
+                      </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-400">Remaining:</span>
-                      <span className="text-orange-400 font-semibold">
-                        {formatCurrency(goal.target_amount - goal.current_amount)}
+                      <span className="text-muted-foreground">Sisa Dana:</span>
+                      <span className="text-primary font-semibold">
+                        {formatCurrency(Math.max(0, goal.target_amount - goal.current_amount))}
                       </span>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 text-slate-300">
-                    <Calendar className="w-4 h-4" />
-                    <span className="text-sm">
-                      {daysRemaining > 0 ? `${daysRemaining} days remaining` : "Target date passed"}
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground pt-1 border-t border-border/60">
+                    <Calendar className="w-3.5 h-3.5 text-primary" />
+                    <span>
+                      {daysRemaining > 0
+                        ? `Sisa ${daysRemaining} hari lagi`
+                        : daysRemaining === 0
+                        ? "Batas target hari ini"
+                        : "Batas waktu telah berlalu"}
                     </span>
-                  </div>
-
-                  <div className="flex gap-2 pt-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="border-slate-600 text-slate-300 flex-1 bg-transparent"
-                    >
-                      <Plus className="w-3 h-3 mr-1" />
-                      Add Money
-                    </Button>
-                    <Button size="sm" variant="outline" className="border-slate-600 text-slate-300 bg-transparent">
-                      <Edit className="w-3 h-3" />
-                    </Button>
                   </div>
                 </CardContent>
               </Card>
-            )
+            );
           })}
         </div>
 
-        {savingsGoals.length === 0 && (
-          <Card className="bg-slate-800/50 border-slate-700 text-center py-12">
-            <CardContent>
-              <PiggyBank className="w-16 h-16 text-slate-500 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-white mb-2">No Savings Goals Yet</h3>
-              <p className="text-slate-400 mb-4">Start your savings journey by creating your first goal!</p>
-              <Button
-                onClick={() => setIsAddingGoal(true)}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Create Your First Goal
-              </Button>
-            </CardContent>
+        {savingsGoals.length === 0 && !isAddingGoal && (
+          <Card className="border border-border bg-card text-center p-12">
+            <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto mb-3">
+              <Target className="w-6 h-6" />
+            </div>
+            <h3 className="text-base font-semibold text-foreground mb-1">
+              Belum Ada Target Tersimpan
+            </h3>
+            <p className="text-xs text-muted-foreground max-w-sm mx-auto mb-4">
+              Mulai lacak kemajuan tabungan Anda dengan membuat sasaran baru sekarang.
+            </p>
+            <Button
+              onClick={() => setIsAddingGoal(true)}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs h-9 font-medium"
+            >
+              <Plus className="w-4 h-4 mr-1.5" />
+              Buat Sasaran Tabungan
+            </Button>
           </Card>
         )}
       </div>
     </div>
-  )
+  );
 }

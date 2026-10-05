@@ -18,8 +18,28 @@
     {
       "fileMatch": ["package.json"],
       "url": "https://json.schemastore.org/package.json"
+    },
+    {
+      "fileMatch": ["tsconfig.json", "tsconfig.*.json"],
+      "url": "https://json.schemastore.org/tsconfig.json"
+    },
+    {
+      "fileMatch": ["next.config.js", "next.config.mjs"],
+      "url": "https://json.schemastore.org/next.json"
     }
   ],
   "typescript.preferences.includePackageJsonAutoImports": "off",
-  "typescript.suggest.autoImports": false
+  "typescript.suggest.autoImports": false,
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "emmet.includeLanguages": {
+    "typescript": "html",
+    "typescriptreact": "html"
+  },
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "files.eol": "\n"
 }

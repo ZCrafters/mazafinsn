@@ -1,14 +1,13 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-// DeepSeek API configuration
-const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY
-const DEEPSEEK_BASE_URL = process.env.DEEPSEEK_BASE_URL || "https://api.deepseek.com/v1"
-
-if (!DEEPSEEK_API_KEY) {
-  throw new Error("DEEPSEEK_API_KEY environment variable is required")
-}
+// Google Gemini API configuration
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY
+const GEMINI_BASE_URL = process.env.GEMINI_BASE_URL || "https://generativelanguage.googleapis.com/v1beta"
 
 export async function POST(request: NextRequest) {
+  if (!GEMINI_API_KEY) {
+    return NextResponse.json({ error: "Gemini API key not configured" }, { status: 500 })
+  }
   try {
     const body = await request.json()
     
@@ -65,32 +64,36 @@ export async function POST(request: NextRequest) {
     Format the response as JSON with keys: assessment, allocation, strategy, warnings
     `
 
-    // Use direct fetch to DeepSeek API
-    const response = await fetch(`${DEEPSEEK_BASE_URL}/chat/completions`, {
+    // Use Google Gemini API
+    const response = await fetch(`${GEMINI_BASE_URL}/models/gemini-2.0-flash:generateContent`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+        'X-goog-api-key': GEMINI_API_KEY,
       },
       body: JSON.stringify({
-        model: 'deepseek-chat',
-        messages: [
+        contents: [
           {
-            role: 'user',
-            content: prompt
+            parts: [
+              {
+                text: prompt
+              }
+            ]
           }
         ],
-        max_tokens: 1000,
-        temperature: 0.7
+        generationConfig: {
+          maxOutputTokens: 1000,
+          temperature: 0.7
+        }
       })
     })
 
     if (!response.ok) {
-      throw new Error(`DeepSeek API error: ${response.status}`)
+      throw new Error(`Gemini API error: ${response.status}`)
     }
 
     const data = await response.json()
-    const text = data.choices?.[0]?.message?.content || "{}"
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "{}"
 
     // Parse the AI response or provide fallback
     let analysis
@@ -133,7 +136,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Handle API key errors
-    if (error instanceof Error && error.message.includes("DEEPSEEK_API_KEY")) {
+    if (error instanceof Error && error.message.includes("GEMINI_API_KEY")) {
       return NextResponse.json({ error: "Server configuration error" }, { status: 500 })
     }
     

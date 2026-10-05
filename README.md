@@ -1,4 +1,4 @@
-# Maza Finance - Financial Web Application
+ # Maza Finance - Financial Web Application
 
 A comprehensive Next.js-based financial literacy and management platform designed for the Indonesian market.
 
@@ -17,7 +17,7 @@ A comprehensive Next.js-based financial literacy and management platform designe
 - **Framework**: Next.js 14 with TypeScript
 - **UI Library**: Radix UI components with Tailwind CSS
 - **Database**: Supabase (PostgreSQL)
-- **AI Integration**: DeepSeek API for AI chat functionality
+- **AI Integration**: Google Gemini API for AI chat functionality
 - **Charts**: Recharts for data visualization
 - **Animations**: Framer Motion
 - **Styling**: Custom design system with sage green theme
@@ -27,7 +27,7 @@ A comprehensive Next.js-based financial literacy and management platform designe
 - Node.js 18+
 - npm or pnpm
 - Supabase account
-- DeepSeek API key (already configured)
+- Google Gemini API key
 
 ## 🔧 Installation
 
@@ -53,9 +53,7 @@ A comprehensive Next.js-based financial literacy and management platform designe
    ```env
    NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-   # DeepSeek API key is already configured in the application
-   NEXTAUTH_SECRET=your_nextauth_secret
-   NEXTAUTH_URL=http://localhost:3000
+   GEMINI_API_KEY=your_gemini_api_key
    ```
 
 4. **Set up the database**
@@ -65,7 +63,7 @@ A comprehensive Next.js-based financial literacy and management platform designe
    scripts/001_create_chat_tables.sql
    scripts/002_create_financial_tables.sql
    scripts/003_create_savings_goals_table.sql
-   scripts/004_create_savings_goals_table.sql
+   scripts/004_create_savings_tracker_table.sql
    ```
 
 5. **Run the development server**
@@ -155,7 +153,7 @@ The application uses a custom design system with:
 - Portfolio analysis
 
 ### AI Chat API
-- DeepSeek API integration for intelligent responses
+- Google Gemini API integration for intelligent responses
 - Real-time financial data processing
 - Indonesian language support
 - Comprehensive financial system prompts
@@ -204,7 +202,7 @@ For support and questions:
 - ✅ Updated component imports and export names
 - ✅ Created proper environment variable examples
 - ✅ Fixed duplicate hook files and import paths
-- ✅ **Updated AI integration to use DeepSeek API** with provided API key
+- ✅ **Updated AI integration to use Google Gemini API**
 
 ---
 
