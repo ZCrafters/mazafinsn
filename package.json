@@ -50,8 +50,6 @@
     "@react-three/drei": "^9.122.0",
     "@react-three/fiber": "^8.18.0",
     "@shadergradient/react": "^2.4.20",
-    "@supabase/ssr": "^0.5.2",
-    "@supabase/supabase-js": "^2.46.1",
     "@swc/helpers": "^0.5.17",
     "ai": "^3.4.32",
     "animejs": "^4.5.0",

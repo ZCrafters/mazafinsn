@@ -16,7 +16,7 @@ A comprehensive Next.js-based financial literacy and management platform designe
 
 - **Framework**: Next.js 14 with TypeScript
 - **UI Library**: Radix UI components with Tailwind CSS
-- **Database**: Supabase (PostgreSQL)
+- **Data**: Dummy local database (localStorage) + mock financial data
 - **AI Integration**: Google Gemini API for AI chat functionality
 - **Charts**: Recharts for data visualization
 - **Animations**: Framer Motion
@@ -26,7 +26,6 @@ A comprehensive Next.js-based financial literacy and management platform designe
 
 - Node.js 18+
 - npm or pnpm
-- Supabase account
 - Google Gemini API key
 
 ## 🔧 Installation
@@ -51,29 +50,19 @@ A comprehensive Next.js-based financial literacy and management platform designe
    
    Fill in your environment variables:
    ```env
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
    GEMINI_API_KEY=your_gemini_api_key
    ```
 
-4. **Set up the database**
-   
-   Run the SQL scripts in your Supabase SQL editor in order:
-   ```bash
-   scripts/001_create_chat_tables.sql
-   scripts/002_create_financial_tables.sql
-   scripts/003_create_savings_goals_table.sql
-   scripts/004_create_savings_tracker_table.sql
-   ```
+   Data disimpan lokal (localStorage) — tidak perlu setup database.
 
-5. **Run the development server**
+4. **Run the development server**
    ```bash
    npm run dev
    # or
    pnpm dev
    ```
 
-6. **Open your browser**
+5. **Open your browser**
    Navigate to [http://localhost:3000](http://localhost:3000)
 
 ## 📁 Project Structure
@@ -91,7 +80,7 @@ A comprehensive Next.js-based financial literacy and management platform designe
 │   ├── games/           # Game components
 │   └── ...
 ├── lib/                  # Utility libraries
-│   ├── supabase/        # Supabase configuration
+│   ├── supabase/        # Dummy local data client (pengganti Supabase)
 │   └── financial-data.ts # Financial data service
 ├── hooks/               # Custom React hooks
 ├── scripts/            # Database setup scripts
@@ -121,18 +110,18 @@ A comprehensive Next.js-based financial literacy and management platform designe
 - Financial Quiz Arena
 - Achievement system with progress tracking
 
-## 🔐 Database Schema
+## 🗄️ Data Layer (Dummy)
 
-The application uses Supabase with the following main tables:
+Sementara ini semua data disimpan lokal lewat `lib/supabase/client.ts`
+(dummy client berbasis localStorage, aman saat build/prerender):
 
-- `chat_conversations` & `chat_messages` - AI chat functionality
-- `transactions` - Financial transactions
-- `budgets` - Budget management
-- `financial_profiles` - User financial profiles
-- `savings_goals` - Savings goal tracking
-- `savings_tracker` - Savings progress tracking
+- `savings_goals` - Tabungan (seed + CRUD lokal)
+- `transactions` - Transaksi & investasi (seed + insert lokal)
+- `chat_conversations` & `chat_messages` - Riwayat chat AI
+- `financial_profiles` - Profil risiko pengguna
 
-All tables include Row Level Security (RLS) policies for data protection.
+Saat backend asli dibutuhkan, cukup ganti isi dummy client dengan
+klien database sungguhan — 7 file pemakai tidak perlu diubah.
 
 ## 🎨 Styling
 

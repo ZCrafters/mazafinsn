@@ -5,7 +5,7 @@ Ringkas, untuk onboard agent ke proyek ini tanpa baca seluruh repo.
 ## Stack
 - Next.js 14 App Router + TypeScript, Tailwind v3 (`tailwind.config.js`), Radix/shadcn (`components/ui/*`).
 - Motion: framer-motion, animejs, gsap. 3D: three + @react-three/fiber@8 + drei + @shadergradient/react.
-- Data: Supabase (client/server), localStorage (poin, game), mock (`lib/financial-data.ts`).
+- Data: **dummy client** `lib/supabase/client.ts` (localStorage + seed, pengganti Supabase, aman saat prerender), localStorage (poin, game), mock (`lib/financial-data.ts`).
 - API routes: `/api/chat`, `/api/news`, `/api/quiz`, `/api/analyze-portfolio`, `/api/analyze-risk-profile`.
 
 ## Sumber kebenaran desain
@@ -31,7 +31,7 @@ Ringkas, untuk onboard agent ke proyek ini tanpa baca seluruh repo.
 ## Gotchas
 1. `app/portfolio/page.tsx` & `app/savings-tracker/page.tsx` adalah **client pages** → tidak bisa `export const metadata` (pakai default layout).
 2. Emoji dipakai sebagai **data** kategori: `components/management/{transaction-form,transaction-manager,enhanced-financial-dashboard}.tsx` menyimpan `icon`/`label` ber-emoji. Ubah bersama konsisten di semua pemakaian & data tersimpan.
-3. `app/portfolio/page.tsx` query Supabase `.eq("category","📈 Investasi")` — jangan ubah string itu tanpa sinkron DB.
+3. `app/portfolio/page.tsx` query `.eq("category","📈 Investasi")` — seed dummy di `lib/supabase/client.ts` harus memakai string kategori itu persis.
 4. `next/font/google` Next 14 **tidak** punya `Geist`/`Geist_Mono` → pakai `Outfit` + `JetBrains Mono`.
 5. `/games` membawa bundle 3D (shader). Gunakan `dynamic(() => import(...), { ssr:false })` + scrim di atasnya.
 6. Tombol brand harus selalu `text-white` saat `bg-[#2E8B57]`/`bg-sage-600` (independen tema).
