@@ -29,6 +29,7 @@ const translations: TranslationMap = {
     'header.news': 'Berita',
     'header.signIn': 'Masuk',
     'header.getStarted': 'Mulai Sekarang',
+    'header.toggleTheme': 'Ganti mode terang / gelap',
 
     // Language switcher
     'language.indonesian': 'Bahasa Indonesia',
@@ -313,6 +314,7 @@ const translations: TranslationMap = {
     'header.news': 'News',
     'header.signIn': 'Sign In',
     'header.getStarted': 'Get Started',
+    'header.toggleTheme': 'Toggle light / dark mode',
 
     // Language switcher
     'language.indonesian': 'Bahasa Indonesia',
@@ -595,6 +597,7 @@ const translations: TranslationMap = {
     'header.news': 'Berita',
     'header.signIn': 'Log Masuk',
     'header.getStarted': 'Mula Sekarang',
+    'header.toggleTheme': 'Tukar mod cerah / gelap',
 
     // Language switcher
     'language.indonesian': 'Bahasa Indonesia',

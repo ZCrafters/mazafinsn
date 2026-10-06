@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { dummyChatReply } from "@/lib/api-dummy"
 
 // Google Gemini API configuration
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY
@@ -114,47 +115,62 @@ export async function POST(request: NextRequest) {
 
     const financialContext = await processFinancialQuery(message, "guest_user")
 
+    // Mode demo: tanpa API key, jawab dengan data dummy lokal (tetap 200)
     if (!GEMINI_API_KEY) {
-      return NextResponse.json({ error: "Gemini API key not configured" }, { status: 500 })
-    }
-
-    // Use Google Gemini API
-    const response = await fetch(`${GEMINI_BASE_URL}/models/gemini-2.0-flash:generateContent`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-goog-api-key': GEMINI_API_KEY,
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                text: `${FINANCIAL_SYSTEM_PROMPT}\n\nUser: ${message}${financialContext ? `\n\nData keuangan real-time:${financialContext}` : ""}`
-              }
-            ]
-          }
-        ],
-        generationConfig: {
-          maxOutputTokens: 1000,
-          temperature: 0.7
-        }
+      return NextResponse.json({
+        message: dummyChatReply(message),
+        conversationId: currentConversationId,
+        source: "dummy",
       })
-    })
-
-    if (!response.ok) {
-      throw new Error(`Gemini API error: ${response.status}`)
     }
 
-    const data = await response.json()
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "Maaf, terjadi kesalahan dalam memproses permintaan Anda."
-    
-    const filteredText = filterThinkingTags(text)
+    try {
+      // Use Google Gemini API
+      const response = await fetch(`${GEMINI_BASE_URL}/models/gemini-2.0-flash:generateContent`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-goog-api-key': GEMINI_API_KEY,
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: `${FINANCIAL_SYSTEM_PROMPT}\n\nUser: ${message}${financialContext ? `\n\nData keuangan real-time:${financialContext}` : ""}`
+                }
+              ]
+            }
+          ],
+          generationConfig: {
+            maxOutputTokens: 1000,
+            temperature: 0.7
+          }
+        })
+      })
 
-    return NextResponse.json({
-      message: filteredText,
-      conversationId: currentConversationId,
-    })
+      if (!response.ok) {
+        throw new Error(`Gemini API error: ${response.status}`)
+      }
+
+      const data = await response.json()
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "Maaf, terjadi kesalahan dalam memproses permintaan Anda."
+
+      const filteredText = filterThinkingTags(text)
+
+      return NextResponse.json({
+        message: filteredText,
+        conversationId: currentConversationId,
+        source: "gemini",
+      })
+    } catch {
+      // Gemini gagal (kuota/jaringan) — fallback ke dummy lokal
+      return NextResponse.json({
+        message: dummyChatReply(message),
+        conversationId: currentConversationId,
+        source: "dummy",
+      })
+    }
   } catch (error) {
     console.error("Chat API error:", error)
     

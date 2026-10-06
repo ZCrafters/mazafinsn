@@ -62,7 +62,7 @@ export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
         )}
 
         <div className="flex items-center justify-between gap-3 mt-2.5 pt-1.5 border-t border-border/40 text-[11px] text-muted-foreground">
-          <span className="font-mono">
+          <span className="font-mono" suppressHydrationWarning>
             {message.timestamp.toLocaleTimeString([], {
               hour: "2-digit",
               minute: "2-digit",

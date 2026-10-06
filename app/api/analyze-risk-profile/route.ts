@@ -1,13 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { dummyRiskAnalysis } from "@/lib/api-dummy"
 
 // Google Gemini API configuration
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY
 const GEMINI_BASE_URL = process.env.GEMINI_BASE_URL || "https://generativelanguage.googleapis.com/v1beta"
 
 export async function POST(request: NextRequest) {
-  if (!GEMINI_API_KEY) {
-    return NextResponse.json({ error: "Gemini API key not configured" }, { status: 500 })
-  }
   try {
     const body = await request.json()
     
@@ -64,69 +62,56 @@ export async function POST(request: NextRequest) {
     Format the response as JSON with keys: assessment, allocation, strategy, warnings
     `
 
-    // Use Google Gemini API
-    const response = await fetch(`${GEMINI_BASE_URL}/models/gemini-2.0-flash:generateContent`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-goog-api-key': GEMINI_API_KEY,
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                text: prompt
-              }
-            ]
-          }
-        ],
-        generationConfig: {
-          maxOutputTokens: 1000,
-          temperature: 0.7
-        }
-      })
-    })
-
-    if (!response.ok) {
-      throw new Error(`Gemini API error: ${response.status}`)
+    // Mode demo: tanpa API key langsung pakai aturan baku lokal
+    if (!GEMINI_API_KEY) {
+      return NextResponse.json(dummyRiskAnalysis(age, investmentHorizon, riskTolerance))
     }
 
-    const data = await response.json()
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "{}"
-
-    // Parse the AI response or provide fallback
-    let analysis
     try {
-      analysis = JSON.parse(text)
-    } catch {
-      analysis = {
-        assessment: `Berdasarkan usia ${age} tahun dan horizon investasi ${investmentHorizon} tahun dengan toleransi risiko ${riskTolerance}, profil Anda menunjukkan karakteristik investor yang perlu mempertimbangkan keseimbangan antara pertumbuhan dan stabilitas.`,
-        allocation: {
-          saham: riskTolerance === "aggressive" ? 70 : riskTolerance === "moderate" ? 50 : 30,
-          obligasi: riskTolerance === "aggressive" ? 20 : riskTolerance === "moderate" ? 35 : 50,
-          reksadana: 10,
-          emas: riskTolerance === "conservative" ? 20 : 10,
+      // Use Google Gemini API
+      const response = await fetch(`${GEMINI_BASE_URL}/models/gemini-2.0-flash:generateContent`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-goog-api-key': GEMINI_API_KEY,
         },
-        strategy: [
-          "Diversifikasi portfolio untuk mengurangi risiko",
-          "Investasi rutin dengan dollar cost averaging",
-          "Review dan rebalancing portfolio secara berkala",
-        ],
-        warnings:
-          age > 50
-            ? [
-                "Pertimbangkan untuk mengurangi eksposur risiko tinggi",
-                "Fokus pada preservasi modal dan income generation",
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: prompt
+                }
               ]
-            : [
-                "Manfaatkan horizon investasi yang panjang untuk pertumbuhan",
-                "Jangan panik dengan volatilitas jangka pendek",
-              ],
-      }
-    }
+            }
+          ],
+          generationConfig: {
+            maxOutputTokens: 1000,
+            temperature: 0.7
+          }
+        })
+      })
 
-    return NextResponse.json(analysis)
+      if (!response.ok) {
+        throw new Error(`Gemini API error: ${response.status}`)
+      }
+
+      const data = await response.json()
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "{}"
+
+      // Parse the AI response or provide fallback
+      let analysis
+      try {
+        analysis = JSON.parse(text)
+      } catch {
+        analysis = dummyRiskAnalysis(age, investmentHorizon, riskTolerance)
+      }
+
+      return NextResponse.json({ ...analysis, source: "gemini" })
+    } catch {
+      // Gemini gagal — fallback ke aturan baku lokal
+      return NextResponse.json(dummyRiskAnalysis(age, investmentHorizon, riskTolerance))
+    }
   } catch (error) {
     console.error("Error analyzing risk profile:", error)
     

@@ -11,9 +11,8 @@ import EnhancedAIChatbot from "../enhanced-ai-chatbot";
 import {
   categories,
   months,
-  generateNormalDummyData,
-  generateOverspendingDummyData,
 } from "./data";
+import { generateYearlyTransactions } from "@/lib/dummy-transactions";
 import {
   Transaction,
   TransactionFormData,
@@ -46,7 +45,7 @@ export default function EnhancedFinancialDashboard() {
     const currentMonth = new Date().getMonth();
     setSelectedYear(currentYear);
     setSelectedMonth(currentMonth);
-    setTransactions(generateNormalDummyData(currentYear, currentMonth));
+    setTransactions(generateYearlyTransactions(currentYear, "normal"));
   };
 
   const loadOverspendingDummyData = () => {
@@ -54,7 +53,7 @@ export default function EnhancedFinancialDashboard() {
     const currentMonth = new Date().getMonth();
     setSelectedYear(currentYear);
     setSelectedMonth(currentMonth);
-    setTransactions(generateOverspendingDummyData(currentYear, currentMonth));
+    setTransactions(generateYearlyTransactions(currentYear, "overspending"));
   };
 
   const handleSubmit = (e: React.FormEvent) => {

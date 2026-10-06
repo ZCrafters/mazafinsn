@@ -12,9 +12,9 @@ import {
 import { useLanguage, type Language } from '@/lib/language-context'
 
 const languageOptions = [
-  { code: 'id' as Language, name: 'Bahasa Indonesia', flag: '🇮🇩' },
-  { code: 'en' as Language, name: 'English', flag: '🇺🇸' },
-  { code: 'ms' as Language, name: 'Bahasa Melayu', flag: '🇲🇾' },
+  { code: 'id' as Language, name: 'Bahasa Indonesia', short: 'ID' },
+  { code: 'en' as Language, name: 'English', short: 'EN' },
+  { code: 'ms' as Language, name: 'Bahasa Melayu', short: 'MS' },
 ]
 
 export default function LanguageSwitcher() {
@@ -25,9 +25,9 @@ export default function LanguageSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center gap-2 text-gray-700 hover:text-[#2E8B57] hover:bg-gray-50 font-medium px-3 py-2 rounded-md transition-colors">
+        <button className="flex items-center gap-2 text-muted-foreground hover:text-foreground hover:bg-accent font-medium px-3 py-2 rounded-md transition-colors">
           <Globe size={16} />
-          <span className="hidden sm:inline">{currentLanguage?.flag}</span>
+          <span className="hidden sm:inline text-xs font-bold font-mono">{currentLanguage?.short}</span>
           <span className="hidden md:inline text-sm">{currentLanguage?.name}</span>
         </button>
       </DropdownMenuTrigger>
@@ -37,13 +37,13 @@ export default function LanguageSwitcher() {
             key={lang.code}
             onClick={() => setLanguage(lang.code)}
             className={`flex items-center gap-3 cursor-pointer ${
-              language === lang.code ? 'bg-gray-100 text-[#2E8B57]' : ''
+              language === lang.code ? 'bg-accent text-primary' : ''
             }`}
           >
-            <span className="text-lg">{lang.flag}</span>
+            <span className="text-xs font-bold font-mono w-6 text-center">{lang.short}</span>
             <span className="font-medium">{lang.name}</span>
             {language === lang.code && (
-              <span className="ml-auto text-[#2E8B57]">✓</span>
+              <span className="ml-auto text-primary">✓</span>
             )}
           </DropdownMenuItem>
         ))}

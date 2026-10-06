@@ -262,7 +262,7 @@ export default function Newsletter() {
               <CardContent className="p-6">
                 <h3 className="font-bold mb-2">{t("newsletter.premiumTitle")}</h3>
                 <p className="text-sage-100 text-sm mb-4">{t("newsletter.premiumDescription")}</p>
-                <Button variant="secondary" className="w-full bg-white text-sage-800 hover:bg-gray-100">
+                <Button variant="secondary" className="w-full bg-white text-sage-800 hover:bg-white/90">
                   {t("newsletter.premiumCta")}
                 </Button>
               </CardContent>

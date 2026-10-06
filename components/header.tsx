@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { useLanguage } from "@/lib/language-context"
 import LanguageSwitcher from "@/components/language-switcher"
+import ThemeToggle from "@/components/theme-toggle"
 
 const navLinks = [
   { href: "/", label: "header.home", icon: null },
@@ -77,6 +78,7 @@ export default function Header() {
           </nav>
 
           <div className="hidden lg:flex items-center gap-3">
+            <ThemeToggle />
             <LanguageSwitcher />
             <Button variant="ghost" className="text-muted-foreground hover:text-foreground font-medium px-5">
               {t("header.signIn")}
@@ -86,14 +88,17 @@ export default function Header() {
             </Button>
           </div>
 
-          <button
-            className="lg:hidden p-3 text-foreground hover:bg-accent rounded-lg transition-colors"
-            onClick={() => setIsMenuOpen((prev) => !prev)}
-            aria-label="Open main menu"
-            aria-expanded={isMenuOpen}
-          >
-            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+          <div className="flex lg:hidden items-center gap-1">
+            <ThemeToggle />
+            <button
+              className="p-3 text-foreground hover:bg-accent rounded-lg transition-colors"
+              onClick={() => setIsMenuOpen((prev) => !prev)}
+              aria-label="Open main menu"
+              aria-expanded={isMenuOpen}
+            >
+              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
         </div>
       </div>
 

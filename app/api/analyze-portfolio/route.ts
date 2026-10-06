@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { dummyPortfolioAnalysis } from "@/lib/api-dummy"
 
 // Google Gemini API configuration
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY
@@ -52,8 +53,8 @@ Data Keuangan:
 - Hutang: ${financialData.debts}
 - Target Tabungan: ${financialData.savingsGoal}
 
-Budget Categories: ${JSON.stringify(budgetCategories)}
-Recent Transactions: ${JSON.stringify(transactions.slice(0, 10))}
+Budget Categories: ${JSON.stringify(budgetCategories || [])}
+Recent Transactions: ${JSON.stringify((transactions || []).slice(0, 10))}
 
 Berikan analisis dalam format JSON dengan struktur:
 {
@@ -72,60 +73,55 @@ Fokus pada:
 `
 
 if (!GEMINI_API_KEY) {
-  return NextResponse.json({ error: "Gemini API key not configured" }, { status: 500 })
+  return NextResponse.json(dummyPortfolioAnalysis(financialData))
 }
 
 // Use Google Gemini API
-const response = await fetch(`${GEMINI_BASE_URL}/models/gemini-2.0-flash:generateContent`, {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'X-goog-api-key': GEMINI_API_KEY,
-  },
-  body: JSON.stringify({
-    contents: [
-      {
-        parts: [
-          {
-            text: analysisPrompt
-          }
-        ]
+try {
+  const response = await fetch(`${GEMINI_BASE_URL}/models/gemini-2.0-flash:generateContent`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-goog-api-key': GEMINI_API_KEY,
+    },
+    body: JSON.stringify({
+      contents: [
+        {
+          parts: [
+            {
+              text: analysisPrompt
+            }
+          ]
+        }
+      ],
+      generationConfig: {
+        maxOutputTokens: 1000,
+        temperature: 0.7
       }
-    ],
-    generationConfig: {
-      maxOutputTokens: 1000,
-      temperature: 0.7
-    }
+    })
   })
-})
 
-if (!response.ok) {
-  throw new Error(`Gemini API error: ${response.status}`)
+  if (!response.ok) {
+    throw new Error(`Gemini API error: ${response.status}`)
+  }
+
+  const data = await response.json()
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "{}"
+
+  // Parse the AI response
+  let analysis
+  try {
+    analysis = JSON.parse(text)
+  } catch (parseError) {
+    // Fallback if JSON parsing fails
+    analysis = dummyPortfolioAnalysis(financialData)
+  }
+
+  return NextResponse.json({ ...analysis, source: "gemini" })
+} catch {
+  // Gemini gagal — fallback ke analisis dummy dari angka input
+  return NextResponse.json(dummyPortfolioAnalysis(financialData))
 }
-
-const data = await response.json()
-const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "{}"
-
-    // Parse the AI response
-    let analysis
-    try {
-      analysis = JSON.parse(text)
-    } catch (parseError) {
-      // Fallback if JSON parsing fails
-      analysis = {
-        insights: [
-          "Analisis keuangan Anda menunjukkan pola yang menarik untuk diperhatikan.",
-          "Data keuangan Anda memberikan gambaran tentang kebiasaan finansial saat ini.",
-        ],
-        warnings: [],
-        recommendations: [
-          "Lanjutkan monitoring keuangan secara berkala.",
-          "Pertimbangkan untuk meningkatkan diversifikasi investasi.",
-        ],
-      }
-    }
-
-    return NextResponse.json(analysis)
   } catch (error) {
     console.error("Error in financial analysis:", error)
     

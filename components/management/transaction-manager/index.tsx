@@ -8,10 +8,7 @@ import {
   Transaction,
   TransactionFormData,
 } from "./types";
-import {
-  getNormalDummyData,
-  getOverspendingDummyData,
-} from "./data";
+import { generateYearlyTransactions } from "@/lib/dummy-transactions";
 import { SummaryCards } from "./parts/summary-cards";
 import { InlineForm } from "./parts/inline-form";
 import { TransactionList } from "./parts/transaction-list";
@@ -30,14 +27,14 @@ export default function TransactionManager() {
   const loadDummyData = () => {
     const currentDate = new Date();
     setTransactions(
-      getNormalDummyData(currentDate.getFullYear(), currentDate.getMonth())
+      generateYearlyTransactions(currentDate.getFullYear(), "normal")
     );
   };
 
   const loadOverspendingDummyData = () => {
     const currentDate = new Date();
     setTransactions(
-      getOverspendingDummyData(currentDate.getFullYear(), currentDate.getMonth())
+      generateYearlyTransactions(currentDate.getFullYear(), "overspending")
     );
   };
 
